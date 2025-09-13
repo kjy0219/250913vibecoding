@@ -1,90 +1,73 @@
 import streamlit as st
 import pandas as pd
-import time
+import altair as alt
+import os
 
-# 🎉 페이지 설정
+# 1. 스트림릿 페이지 설정
 st.set_page_config(
-    page_title="MBTI 공부법 가이드 📚",
-    page_icon="🧠",
-    layout="centered"
+    page_title="국가별 MBTI 유형 분포 분석",
+    layout="wide"
 )
 
-# MBTI 유형별 공부법 데이터를 딕셔너리로 정의합니다.
-mbti_data = {
-    "ISTJ": {
-        "title": "ISTJ 유형을 위한 공부법 🧐",
-        "methods": [
-            "📝 계획적이고 체계적인 학습 계획을 세우세요. 꼼꼼한 계획이 효율을 높여줍니다.",
-            "📚 교재의 목차를 먼저 파악하여 전체적인 구조를 이해하세요.",
-            "✍️ 실제 문제 풀이를 통해 지식을 적용하고 반복 학습하는 것이 좋습니다."
-        ]
-    },
-    "ISFJ": {
-        "title": "ISFJ 유형을 위한 공부법 💖",
-        "methods": [
-            "😌 안정적이고 조용한 환경에서 공부하는 것을 선호합니다.",
-            "🖍️ 학습한 내용을 노트에 정리하고 반복해서 읽는 것이 효과적입니다.",
-            "📖 새로운 개념을 익히기 전에 기존 지식을 충분히 복습하세요."
-        ]
-    },
-    "INFJ": {
-        "title": "INFJ 유형을 위한 공부법 ✨",
-        "methods": [
-            "🌌 큰 그림과 이론적 배경을 이해하는 것을 좋아합니다. 먼저 전체적인 맥락을 파악하세요.",
-            "💡 개념을 자신만의 방식으로 재해석하고 정리하는 연습을 하세요.",
-            "🗣️ 인간적인 교류를 통해 학습 내용을 공유하고 토론하는 것도 좋습니다."
-        ]
-    },
-    "INTJ": {
-        "title": "INTJ 유형을 위한 공부법 🎯",
-        "methods": [
-            "🤫 혼자서 집중할 수 있는 시간을 확보하세요. 독립적인 연구가 효과적입니다.",
-            "🤔 논리적 구조를 파악하고, 왜 그런지 이유를 깊이 파고드는 것을 즐깁니다.",
-            "🗺️ 학습 내용을 도식화하거나 마인드맵으로 정리하면 이해가 쉽습니다."
-        ]
-    },
-    "ISTP": {
-        "title": "ISTP 유형을 위한 공부법 🔧",
-        "methods": [
-            "🛠️ 실용적이고 현실적인 지식을 선호합니다. 직접 해보면서 배우는 것이 중요합니다.",
-            "🚀 불필요한 이론보다는 핵심 원리를 파악하는 데 집중하세요.",
-            "💪 문제 해결 과정을 통해 자연스럽게 지식을 습득하는 것이 효과적입니다."
-        ]
-    },
-    "ISFP": {
-        "title": "ISFP 유형을 위한 공부법 🎨",
-        "methods": [
-            "🧘 자유롭고 유연한 환경에서 공부하는 것을 좋아합니다. 자신만의 리듬을 찾으세요.",
-            "🖼️ 감각적인 자료(예: 영상, 그림)를 활용하면 학습 흥미가 높아집니다.",
-            "🎈 느긋하게 목표를 설정하고, 압박감 없이 즐겁게 공부하는 것이 중요합니다."
-        ]
-    },
-    "INFP": {
-        "title": "INFP 유형을 위한 공부법 🦄",
-        "methods": [
-            "💖 개인의 가치관과 의미를 부여할 수 있는 학습에 몰입합니다.",
-            "🦋 자신만의 속도와 방식으로 공부하세요. 다른 사람과 비교하지 마세요.",
-            "🧚‍♀️ 상상력을 동원하여 학습 내용을 이야기나 그림으로 풀어보는 것도 좋습니다."
-        ]
-    },
-    "INTP": {
-        "title": "INTP 유형을 위한 공부법 🧠",
-        "methods": [
-            "🤯 논리적이고 추상적인 사고를 좋아합니다. 개념을 깊이 탐구하세요.",
-            "🔎 흥미로운 주제에 몰입하는 것이 중요합니다. 호기심을 따라가세요.",
-            "❓ 질문을 던지고, 다양한 가설을 세워보면서 학습 내용을 확장하세요."
-        ]
-    },
-    "ESTP": {
-        "title": "ESTP 유형을 위한 공부법 😎",
-        "methods": [
-            "🏃‍♀️ 경험을 통해 배우는 것을 선호합니다. 실습이나 토론에 적극 참여하세요.",
-            "🎲 한 가지에 너무 오래 집중하기보다, 다양하게 접근해 보세요.",
-            "🔥 경쟁적이고 활동적인 환경에서 더 잘 학습합니다. 스터디 그룹을 활용해 보세요."
-        ]
-    },
-    "ESFP": {
-        "title": "ESFP 유형을 위한 공부법 🎉",
-        "methods": [
-            "🥳 재미와 즐거움을 중요하게 생각합니다. 흥미로운 방식으로 학습하세요.",
-            "👯‍♀️ 친
+st.title("🌏 국가별 MBTI 유형 분석")
+st.write("사용자가 업로드한 CSV 파일을 바탕으로 각 MBTI 유형별 비율이 가장 높은 국가 TOP 10을 시각화합니다.")
+
+# 2. 데이터 불러오기 (로컬 파일 우선, 없을 경우 업로더 사용)
+DEFAULT_FILE_PATH = "countriesMBTI_16types.csv"
+df = None
+
+@st.cache_data
+def load_data(file):
+    return pd.read_csv(file)
+
+# 로컬 파일이 있는지 확인하고 불러오기
+if os.path.exists(DEFAULT_FILE_PATH):
+    try:
+        df = load_data(DEFAULT_FILE_PATH)
+        st.success(f"로컬 파일 '{DEFAULT_FILE_PATH}'을(를) 성공적으로 불러왔습니다.")
+    except Exception as e:
+        st.error(f"로컬 파일을 읽는 중 오류가 발생했습니다: {e}")
+        
+# 로컬 파일을 불러오지 못했거나 없는 경우, 파일 업로더 사용
+if df is None:
+    uploaded_file = st.file_uploader("CSV 파일을 업로드해주세요", type=['csv'])
+    if uploaded_file is not None:
+        try:
+            df = load_data(uploaded_file)
+            st.success("파일 업로드 완료!")
+        except Exception as e:
+            st.error(f"업로드한 파일을 읽는 중 오류가 발생했습니다: {e}")
+
+# 3. 데이터가 성공적으로 로드된 경우에만 분석 및 시각화 진행
+if df is not None:
+    # 3. MBTI 유형 선택 및 TOP 10 데이터 생성
+    mbti_types = df.columns.tolist()[1:]
+    
+    selected_mbti = st.selectbox(
+        '**어떤 MBTI 유형의 TOP 10 국가를 보시겠어요?**',
+        mbti_types
+    )
+    
+    if selected_mbti:
+        # 선택된 MBTI 유형의 비율이 가장 높은 TOP 10 국가 정렬
+        top_10_countries = df.sort_values(by=selected_mbti, ascending=False).head(10)
+        
+        # 4. Altair를 활용한 인터랙티브 막대 그래프 그리기
+        st.subheader(f"✨ **{selected_mbti}** 유형 비율 TOP 10 국가")
+        
+        # 100% 비율로 변환
+        top_10_countries['Percentage'] = top_10_countries[selected_mbti] * 100
+        
+        chart = alt.Chart(top_10_countries).mark_bar().encode(
+            x=alt.X('Country:N', sort='-y', title="국가"),
+            y=alt.Y('Percentage:Q', title="비율 (%)"),
+            tooltip=['Country', alt.Tooltip('Percentage', format='.2f')]
+        ).properties(
+            title=f'{selected_mbti} 유형 비율이 가장 높은 국가'
+        ).interactive() # 인터랙티브 기능 추가
+        
+        st.altair_chart(chart, use_container_width=True)
+        
+        # 5. 데이터 테이블 표시 (선택 사항)
+        st.subheader("데이터 미리보기")
+        st.dataframe(top_10_countries[['Country', selected_mbti]])
